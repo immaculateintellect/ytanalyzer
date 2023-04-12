@@ -110,11 +110,10 @@ Route::post('/ask', function (Request $request) {
         throw new \Exception('Missing question');
       }
    
-
+    
     if(!$video_id = app(\App\Http\Controllers\videoController::class)->extract_video_id($video_url)){
         throw new \Exception('Invalid video URL format');
     }
-
     $video_info_url = "https://www.googleapis.com/youtube/v3/videos?id=$video_id&part=snippet,statistics,contentDetails&key=".env('YOUTUBE_API_KEY');
     $response = Http::get($video_info_url);
 
@@ -155,6 +154,7 @@ Route::post('/ask', function (Request $request) {
     $command  = "python3 $script $video_id";
 
     $result = Process::run($command);
+    $transcript=$result->output();
     $system_message = "This is a video titled '".
     truncate($title, 25).
     "' by '"."$channel_title' with the description: '".
@@ -163,10 +163,9 @@ Route::post('/ask', function (Request $request) {
     $like_count likes, $dislike_count dislikes, and $comment_count comments. The video duration is 
     $duration and the channel has $subscriber_count subscribers.";
 
-    if($transcript=$result->output()){
+    if($transcript){
         $system_message = $system_message." The video has the following transcript: '".truncate($transcript, 16030)."'";
     }
-
     $response = $client->chat()->create([
         'model' => 'gpt-3.5-turbo',
         'messages' => [
