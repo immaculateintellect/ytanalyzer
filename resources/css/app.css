@@ -6,52 +6,14 @@
 body {
     font-family: "Roboto", Arial, sans-serif;
     background-image: linear-gradient(135deg, #ff0000 15%, #ff581a 75%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     height: 100vh;
     overflow-y: auto;
 }
 
 /* 
 
-
-.chat-messages {
-    display: flex;
-    flex-direction: column;
-    height: calc(80vh - 500px);
-    overflow-y: auto;
-    padding: 0.5rem;
-    white-space: pre-wrap;
-    border-bottom: 1px solid #ccc;
-    box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.08);
-}
-
-.user-message,
-.ai-message {
-    display: flex;
-    align-items: center;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    border-radius: 10px;
-    max-width: 80%;
-    line-height: 1.5;
-    font-size: 16px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 1px 1px rgba(0, 0, 0, 0.16);
-}
-
-.user-message {
-    background-color: #ff0000;
-    color: #ffffff;
-    margin-left: 0.5rem;
-    font-weight: 500;
-    align-self: flex-start;
-}
-
-.ai-message {
-    background-color: #ffffff;
-    color: #333333;
-    margin-right: 0.5rem;
-    font-weight: 500;
-    align-self: flex-end;
-}
 
 .chat-input {
     display: flex;
@@ -115,36 +77,6 @@ h1 {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.24);
 }
 
-.user-message:hover,
-.ai-message:hover {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 2px 2px rgba(0, 0, 0, 0.24);
-}
-
-#question-input::placeholder {
-    color: #999;
-    font-style: italic;
-}
-
-.chat-messages::-webkit-scrollbar {
-    width: 8px;
-}
-
-.chat-messages::-webkit-scrollbar-thumb {
-    background-color: #ccc;
-    border-radius: 4px;
-}
-
-.chat-messages::-webkit-scrollbar-track {
-    background-color: #f0f0f0;
-    border-radius: 4px;
-}
-
-
-
-.ai-message {
-    display: flex;
-    align-items: center;
-}
 
 @media screen and (max-width: 768px) {
     .container {

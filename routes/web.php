@@ -93,6 +93,8 @@ Route::get('/login', function () {
 });
 
 Route::post('/ask', function (Request $request) {
+    try {
+
     $yourApiKey = env('OPENAI_API_KEY');
     $client = OpenAI::client($yourApiKey);
 
@@ -100,8 +102,12 @@ Route::post('/ask', function (Request $request) {
     $question = $request->question;
     
     Log::info("Received video_url: $video_url");
-      if (!$video_url||!$question) {
-        throw new \Exception('Missing video URL or question');
+      if (!$video_url) {
+        throw new \Exception('Add a video URL');
+      }
+
+      if (!$question) {
+        throw new \Exception('Missing question');
       }
    
 
@@ -129,9 +135,13 @@ Route::post('/ask', function (Request $request) {
     $duration = isset($content_details['duration']) ? $content_details['duration'] : 'N/A';
 
     if($duration){
-        $duration = new DateInterval($duration);
-        echo $duration->format('%H:%I:%S');
-        throw new \Exception($duration->toString());
+        $timeInterval      = new DateInterval($duration);
+        $intervalInSeconds = (new DateTime())->setTimeStamp(0)->add($timeInterval)->getTimeStamp();
+        $intervalInMinutes = $intervalInSeconds/60;
+        if($intervalInMinutes>10 && (!Auth::user() || Auth::user()->subscribed('default'))){
+            throw new \Exception("You must be a premium member to ask about videos longer than 10 minutes.");
+        }
+        
     }
 
     $channel_id = $video_info['items'][0]['snippet']['channelId'];
@@ -167,11 +177,10 @@ Route::post('/ask', function (Request $request) {
 
     $answer = $response['choices'][0]['message']['content'];
 
-    try {
 
      } catch (\Exception $error) {
       return response()->json([
-        'message' => $error->getMessage(),
+        'answer' => $error->getMessage(),
         'error' => $error,
       ],500);
     }

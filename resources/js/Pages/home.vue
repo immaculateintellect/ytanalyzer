@@ -2,11 +2,12 @@
 import { Head, Link, usePage } from "@inertiajs/vue3";
 import { ref, computed } from "vue";
 
-const videoSrc = ref("https://www.youtube.com/watch?v=Qv70RMUFlu0");
+const videoSrc = ref("");
 const current_user = ref(null);
 const videoPlayer = ref(null);
 const user = computed(() => usePage().props.user);
 const hasPremium = computed(() => usePage().props.hasPremium);
+const showInstructions = ref(false);
 
 const video = computed(() => {
     const videoUrl = videoSrc.value.trim();
@@ -63,6 +64,9 @@ function askQuestion() {
         })
         .catch((error) => {
             console.error("Error:", error);
+            const answer = error.response.data.answer;
+            aiMessageElement.textContent = "Error: " + answer;
+            aiMessageElement.style.backgroundColor = "yellow";
         })
         .finally(() => {
             loadingDots.style.display = "none";
@@ -71,7 +75,7 @@ function askQuestion() {
 
 function downloadTranscript() {
     let transcript = "";
-    chatMessages
+    chatMessages.value
         .querySelectorAll(".user-message, .ai-message")
         .forEach((messageElement) => {
             transcript += messageElement.textContent + "\n";
@@ -110,21 +114,6 @@ function displayMessage(message, className, isAI = false) {
 }
 
 function loadVideo() {}
-
-// document.addEventListener("DOMContentLoaded", function () {
-
-//
-
-//
-
-//     downloadTranscriptButton.addEventListener("click", downloadTranscript);
-
-//     videoSrc.addEventListener("keydown", function (event) {
-//         if (event.key === "Enter") {
-//             loadVideo();
-//         }
-//     });
-// });
 
 // const instructionsModal = document.getElementById("instructions-modal");
 // const instructionsButton = document.getElementById("instructions-button");
@@ -168,6 +157,7 @@ function toggleInstructions() {}
             <div
                 id="instructions-button"
                 class="rounded-md cursor-pointer text-bold m-2 py-1 px-2 hover:bg-[#f4f4f4] bg-[#ffe0d1] text-[#ff581a] shadow-md"
+                @click="showInstructions = true"
             >
                 Instructions
             </div>
@@ -207,10 +197,15 @@ function toggleInstructions() {}
             </div>
         </div>
     </div>
-
-    <!-- <div id="instructions-modal">
-            <div class="instructions-modal-content">
-                <span class="close">&times;</span>
+    <div
+        v-if="showInstructions"
+        class="fixed top-0 left-0 w-full h-full flex items-center justify-center"
+    >
+        <div
+            class="bg-[#ffe0e1] p-8 justify-center flex flex-col rounded-lg shadow-lg border border-3 border-black"
+        >
+            <h2 class="text-lg font-bold mb-4 text-center">Instructions</h2>
+            <div class="instructions-modal-content mb-8">
                 <div class="text-container">
                     <p>
                         1. Obtain your YouTube video or YouTube Short video URL
@@ -235,8 +230,15 @@ function toggleInstructions() {}
                     </p>
                 </div>
             </div>
+            <button
+                class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                @click="showInstructions = false"
+            >
+                Close
+            </button>
         </div>
-         -->
+    </div>
+
     <div
         class="max-w-[600px] bg-[#ffe0d1] p-2 rounded-md my-auto mx-auto"
         style="
@@ -259,7 +261,7 @@ function toggleInstructions() {}
             ></iframe>
         </div>
 
-        <div class="mx-2 pb-1">
+        <div class="mx-2">
             <input
                 class="border-0 shadow appearance-none border rounded w-full p-1 leading-tight focus:outline-none focus:shadow-outline"
                 type="text"
@@ -267,66 +269,71 @@ function toggleInstructions() {}
                 v-model="videoSrc"
             />
         </div>
-        <div
-            class="m-1 flex flex-col border w-full min-h-[300px] bg-[#e7e7e7] rounded-sm shadow-lg mx-auto"
-        >
-            <div ref="chatMessages" class="chat-messages"></div>
-            <div class="flex-grow">
-                <span class="loading-dots"> </span>
-            </div>
-            <div class="chat-input flex h-8 rounded-l-md">
-                <input
-                    id="question-input"
-                    class="border-0 flex-grow h-8 rounded-bl-md text-sm px-1 py-0"
-                    type="text"
-                    v-model="questionInput"
-                    @keydown.enter="askQuestion()"
-                    placeholder="Type Your
-                Question Here..."
-                />
-                <a
-                    class="hover:cursor-pointer flex justify-center items-center h-8 py-auto ext-center p-1 text-xs bg-red-500 text-white rounded-r-md"
-                    id="send-question"
-                    @click="askQuestion()"
-                    >Send</a
-                >
-                <a
-                    id="download-transcript"
-                    class="flex justify-center items-center w-8 bg-white download-transcript"
-                    @click="downloadTranscript()"
-                >
-                    <img
-                        src="/img/download.png"
-                        alt="Download Transcript"
-                        class="h-5"
+        <div class="m-2 flex">
+            <a
+                class="cursor-pointer rounded-md shadow-lg w-full p-1 leading-tight bg-red-600 w-full text-center text-white"
+                @click="loadVideo()"
+                >Load Video
+            </a>
+        </div>
+        <div class="mx-2">
+            <div
+                class="m-3 flex flex-col border w-full min-h-[300px] bg-[#e7e7e7] rounded-sm shadow-lg mx-auto"
+            >
+                <div ref="chatMessages" class="p-2 chat-messages"></div>
+                <div class="flex-grow">
+                    <span class="loading-dots"> </span>
+                </div>
+                <div class="chat-input flex h-8 rounded-l-md">
+                    <input
+                        id="question-input"
+                        class="border-0 flex-grow h-8 rounded-bl-md text-sm px-1 py-0"
+                        type="text"
+                        v-model="questionInput"
+                        @keydown.enter="askQuestion()"
+                        placeholder="Type Your Question Here..."
                     />
-                </a>
+                    <a
+                        class="hover:cursor-pointer flex justify-center items-center h-8 py-auto ext-center p-1 text-xs bg-red-500 text-white rounded-r-md"
+                        id="send-question"
+                        @click="askQuestion()"
+                        >Send</a
+                    >
+                    <a
+                        id="download-transcript"
+                        class="flex justify-center items-center w-8 bg-white download-transcript"
+                        @click="downloadTranscript()"
+                    >
+                        <img
+                            src="/img/download.png"
+                            alt="Download Transcript"
+                            class="h-5 cursor-pointer"
+                        />
+                    </a>
+                </div>
             </div>
         </div>
-        <!-- <div class="twitter-logo-container">
-            <div class="twitter-logo-container">
-                <a
-                    href="https://twitter.com/DreadMcLaren"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <img
-                        src="{{ url_for('static', filename='twitter.png') }}"
-                        alt="Twitter Logo"
-                    />
-                </a>
-            </div>
+        <div class="fixed bottom-3 flex left-3">
+            <a
+                href="https://twitter.com/DreadMcLaren"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mr-3"
+            >
+                <img src="/img/twitter.png" class="h-6" alt="Twitter Logo" />
+            </a>
             <a
                 href="https://www.buymeacoffee.com/dreadmclaren"
                 target="_blank"
                 class="buymeacoffee-logo-container"
             >
                 <img
-                    src="{{ url_for('static', filename='coffee.png') }}"
+                    class="h-6"
+                    src="/img/bmc-button.png"
                     alt="Buy Me A Coffee"
                 />
             </a>
-        </div> -->
+        </div>
     </div>
 </template>
 
@@ -367,6 +374,115 @@ function toggleInstructions() {}
     animation-delay: 0;
 }
 
+.user-message:hover,
+.ai-message:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 2px 2px rgba(0, 0, 0, 0.24);
+}
+
+#question-input::placeholder {
+    color: #999;
+    font-style: italic;
+}
+
+.chat-messages::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background-color: #f0f0f0;
+    border-radius: 4px;
+}
+
+.ai-message {
+    display: flex;
+    align-items: center;
+}
+
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+    height: calc(80vh - 500px);
+    overflow-y: auto;
+    padding: 0.5rem;
+    white-space: pre-wrap;
+    border-bottom: 1px solid #ccc;
+    box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.08);
+}
+
+.user-message,
+.ai-message {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border-radius: 10px;
+    max-width: 80%;
+    line-height: 1.5;
+    font-size: 16px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 1px 1px rgba(0, 0, 0, 0.16);
+}
+
+.user-message {
+    background-color: #ff0000;
+    color: #ffffff;
+    margin-left: 0.5rem;
+    font-weight: 500;
+    align-self: flex-start;
+}
+
+.ai-message {
+    background-color: #ffffff;
+    color: #333333;
+    margin-right: 0.5rem;
+    font-weight: 500;
+    align-self: flex-end;
+}
+/*  */
+
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+    height: 300px;
+    overflow-y: auto;
+    padding: 0.5rem;
+    white-space: pre-wrap;
+    border-bottom: 1px solid #ccc;
+    box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.08);
+}
+
+.user-message,
+.ai-message {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border-radius: 10px;
+    max-width: 80%;
+    line-height: 1.5;
+    font-size: 16px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 1px 1px rgba(0, 0, 0, 0.16);
+}
+
+.user-message {
+    background-color: #ff0000;
+    color: #ffffff;
+    margin-left: 0.5rem;
+    font-weight: 500;
+    align-self: flex-start;
+}
+
+.ai-message {
+    background-color: #ffffff;
+    color: #333333;
+    margin-right: 0.5rem;
+    font-weight: 500;
+    align-self: flex-end;
+}
 @keyframes loading-dots {
     0%,
     80%,
