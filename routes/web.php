@@ -163,12 +163,12 @@ Route::post('/ask', function (Request $request) {
     $like_count likes, $dislike_count dislikes, and $comment_count comments. The video duration is 
     $duration and the channel has $subscriber_count subscribers.";
 
-    if($transcript){
+    if($transcript!==""){
         $system_message = $system_message." The video has the following transcript: '".truncate($transcript, 16030)."'";
     }
     Log::info('system message: '.$system_message);
     Log::info("Question: ".$question);
-    
+
     $response = $client->chat()->create([
         'model' => 'gpt-3.5-turbo',
         'messages' => [
