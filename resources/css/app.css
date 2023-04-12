@@ -139,52 +139,7 @@ h1 {
     border-radius: 4px;
 }
 
-.loading-dots {
-    display: none;
-    width: 1.5rem;
-    height: 1.5rem;
-    position: relative;
-    margin-left: 0.1rem;
-    vertical-align: middle;
-}
 
-.loading-dots span {
-    position: absolute;
-    width: 0.5rem;
-    height: 0.5rem;
-    background-color: #333;
-    border-radius: 50%;
-    animation: loading-dots 1.4s infinite ease-in-out both;
-}
-
-.loading-dots span:nth-child(1) {
-    top: 0.5rem;
-    left: 0;
-    animation-delay: -0.4s;
-}
-
-.loading-dots span:nth-child(2) {
-    top: 0.5rem;
-    left: 0.7rem;
-    animation-delay: -0.2s;
-}
-
-.loading-dots span:nth-child(3) {
-    top: 0.5rem;
-    left: 1.3rem;
-    animation-delay: 0;
-}
-
-@keyframes loading-dots {
-    0%,
-    80%,
-    100% {
-        transform: scaleY(0.4);
-    }
-    40% {
-        transform: scaleY(1);
-    }
-}
 
 .ai-message {
     display: flex;

@@ -1,10 +1,12 @@
 <script setup>
-import { Head, Link } from "@inertiajs/vue3";
+import { Head, Link, usePage } from "@inertiajs/vue3";
 import { ref, computed } from "vue";
 
-const videoSrc = ref("");
+const videoSrc = ref("https://www.youtube.com/watch?v=Qv70RMUFlu0");
 const current_user = ref(null);
 const videoPlayer = ref(null);
+const user = computed(() => usePage().props.user);
+const hasPremium = computed(() => usePage().props.hasPremium);
 
 const video = computed(() => {
     const videoUrl = videoSrc.value.trim();
@@ -37,103 +39,87 @@ function extractVideoId(videoUrl) {
     const match = videoUrl.match(regex);
     return match ? match[1] : null;
 }
-// const chatMessages = document.getElementById("chat-messages");
-// const videoUrlInput = document.getElementById("video-url");
+const chatMessages = ref(null);
+const questionInput = ref("");
 
-// document.addEventListener("DOMContentLoaded", function () {
-//     const videoPlayer = document.getElementById("video-player");
-//     const loadVideoButton = document.getElementById("load-video");
-//     const questionInput = document.getElementById("question-input");
-//     const sendQuestionButton = document.getElementById("send-question");
-//     const downloadTranscriptButton = document.getElementById(
-//         "download-transcript"
-//     );
+function askQuestion() {
+    const question = questionInput.value.trim();
+    if (!question) return;
 
-//     function displayMessage(message, className, isAI = false) {
-//         const messageElement = document.createElement("div");
-//         messageElement.classList.add(className);
-//         messageElement.textContent = message;
+    displayMessage("You: " + question, "user-message");
+    questionInput.value = "";
 
-//         if (isAI) {
-//             const loadingDots = document.createElement("div");
-//             loadingDots.classList.add("loading-dots");
-//             loadingDots.innerHTML = "<span></span><span></span><span></span>";
-//             messageElement.appendChild(loadingDots);
-//         }
+    const aiMessageElement = displayMessage("AI: ", "ai-message", true);
+    const loadingDots = aiMessageElement.querySelector(".loading-dots");
+    loadingDots.style.display = "inline-block";
+    axios
+        .post("/ask", {
+            video_url: videoSrc.value.trim(),
+            question,
+        })
+        .then((data) => {
+            const answer = data.data.answer;
+            aiMessageElement.textContent = "AI: " + answer;
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+        })
+        .finally(() => {
+            loadingDots.style.display = "none";
+        });
+}
 
-//         chatMessages.appendChild(messageElement);
-//         chatMessages.scrollTop = chatMessages.scrollHeight;
-//         return messageElement;
-//     }
+function downloadTranscript() {
+    let transcript = "";
+    chatMessages
+        .querySelectorAll(".user-message, .ai-message")
+        .forEach((messageElement) => {
+            transcript += messageElement.textContent + "\n";
+        });
+    transcript += "\n" + "YouTube Video URL: " + videoSrc.value.trim();
 
-//     function askQuestion() {
-//         const question = questionInput.value.trim();
-//         if (!question) return;
+    const currentDate = new Date();
+    const formattedDate = currentDate.toISOString().slice(0, 10);
 
-//         displayMessage("You: " + question, "user-message");
-//         questionInput.value = "";
+    const blob = new Blob([transcript], {
+        type: "text/plain;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "TubeAsk_Transcript_" + formattedDate + ".txt";
+    link.click();
+    URL.revokeObjectURL(url);
+}
 
-//         const aiMessageElement = displayMessage("AI: ", "ai-message", true);
-//         const loadingDots = aiMessageElement.querySelector(".loading-dots");
-//         loadingDots.style.display = "inline-block";
+function displayMessage(message, className, isAI = false) {
+    const messageElement = document.createElement("div");
+    messageElement.classList.add(className);
+    messageElement.textContent = message;
 
-//         fetch("/ask", {
-//             method: "POST",
-//             headers: {
-//                 "Content-Type": "application/json",
-//             },
-//             body: JSON.stringify({
-//                 video_url: videoUrlInput.value.trim(),
-//                 question: question,
-//             }),
-//         })
-//             .then((response) => response.json())
-//             .then((data) => {
-//                 const answer = data.answer;
-//                 aiMessageElement.textContent = "AI: " + answer;
-//             })
-//             .catch((error) => {
-//                 console.error("Error:", error);
-//             })
-//             .finally(() => {
-//                 loadingDots.style.display = "none";
-//             });
-//     }
+    if (isAI) {
+        const loadingDots = document.createElement("div");
+        loadingDots.classList.add("loading-dots");
+        loadingDots.innerHTML = "<span></span><span></span><span></span>";
+        messageElement.appendChild(loadingDots);
+    }
+
+    chatMessages.value.appendChild(messageElement);
+    chatMessages.value.scrollTop = chatMessages.scrollHeight;
+    return messageElement;
+}
 
 function loadVideo() {}
 
-//     function downloadTranscript() {
-//         let transcript = "";
-//         chatMessages
-//             .querySelectorAll(".user-message, .ai-message")
-//             .forEach((messageElement) => {
-//                 transcript += messageElement.textContent + "\n";
-//             });
-//         transcript += "\n" + "YouTube Video URL: " + videoUrlInput.value.trim();
+// document.addEventListener("DOMContentLoaded", function () {
 
-//         const currentDate = new Date();
-//         const formattedDate = currentDate.toISOString().slice(0, 10);
+//
 
-//         const blob = new Blob([transcript], {
-//             type: "text/plain;charset=utf-8",
-//         });
-//         const url = URL.createObjectURL(blob);
-//         const link = document.createElement("a");
-//         link.href = url;
-//         link.download = "TubeAsk_Transcript_" + formattedDate + ".txt";
-//         link.click();
-//         URL.revokeObjectURL(url);
-//     }
+//
 
-//     loadVideoButton.addEventListener("click", loadVideo);
-//     sendQuestionButton.addEventListener("click", askQuestion);
 //     downloadTranscriptButton.addEventListener("click", downloadTranscript);
-//     questionInput.addEventListener("keydown", function (event) {
-//         if (event.key === "Enter") {
-//             askQuestion();
-//         }
-//     });
-//     videoUrlInput.addEventListener("keydown", function (event) {
+
+//     videoSrc.addEventListener("keydown", function (event) {
 //         if (event.key === "Enter") {
 //             loadVideo();
 //         }
@@ -196,9 +182,28 @@ function toggleInstructions() {}
                 >
             </div>
             <div
-                class="rounded-md cursor-pointer text-bold m-2 p-1 hover:bg-[#f4f4f4] bg-[#ffe0d1] text-[#ff581a] shadow-md"
+                class="rounded-md cursor-pointer text-bold mx-2 mt-2 p-1 hover:bg-[#f4f4f4] bg-[#ffe0d1] text-[#ff581a] shadow-md"
             >
-                <a class="w-full h-full" href="/login"> Login with Google </a>
+                <a v-if="!user" class="w-full h-full" href="/login">
+                    Login with Google
+                </a>
+                <a v-if="user" class="w-full h-full" href="javascript:;">
+                    {{ user.email }}
+                </a>
+            </div>
+            <div class="flex flex-col text-white text-right mr-2" v-if="user">
+                <a v-if="!hasPremium" class="logout" href="/upgrade">
+                    Upgrade</a
+                >
+
+                <a
+                    class="logout px-2 py-0"
+                    v-if="hasPremium"
+                    href="/edit-subscription"
+                >
+                    Edit Subscription
+                </a>
+                <a class="logout px-2 py-0" href="/logout"> Logout </a>
             </div>
         </div>
     </div>
@@ -249,7 +254,7 @@ function toggleInstructions() {}
                 :src="video"
                 frameborder="0"
                 allowfullscreen
-                class="w-full min-h-[50vw] bg-[#e7e7e7] rounded-sm shadow-lg mx-auto"
+                class="w-full min-h-[300px] bg-[#e7e7e7] rounded-sm shadow-lg mx-auto"
                 :key="video"
             ></iframe>
         </div>
@@ -262,28 +267,33 @@ function toggleInstructions() {}
                 v-model="videoSrc"
             />
         </div>
-        <!-- class="w-full bg-[#e7e7e7] rounded-sm shadow-lg mx-auto" -->
-
         <div
-            class="m-1 flex flex-col border rounded-md shadow-lg bg-[#ebebeb] min-h-[50vw]"
+            class="m-1 flex flex-col border w-full min-h-[300px] bg-[#e7e7e7] rounded-sm shadow-lg mx-auto"
         >
-            <div id="chat-messages" class="chat-messages"></div>
-            <div class="flex-grow"></div>
+            <div ref="chatMessages" class="chat-messages"></div>
+            <div class="flex-grow">
+                <span class="loading-dots"> </span>
+            </div>
             <div class="chat-input flex h-8 rounded-l-md">
                 <input
                     id="question-input"
                     class="border-0 flex-grow h-8 rounded-bl-md text-sm px-1 py-0"
                     type="text"
-                    placeholder="Type Your Question Here..."
+                    v-model="questionInput"
+                    @keydown.enter="askQuestion()"
+                    placeholder="Type Your
+                Question Here..."
                 />
                 <a
                     class="hover:cursor-pointer flex justify-center items-center h-8 py-auto ext-center p-1 text-xs bg-red-500 text-white rounded-r-md"
                     id="send-question"
+                    @click="askQuestion()"
                     >Send</a
                 >
                 <a
                     id="download-transcript"
                     class="flex justify-center items-center w-8 bg-white download-transcript"
+                    @click="downloadTranscript()"
                 >
                     <img
                         src="/img/download.png"
@@ -320,4 +330,51 @@ function toggleInstructions() {}
     </div>
 </template>
 
-<style></style>
+<style>
+.loading-dots {
+    display: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    position: relative;
+    margin-left: 0.1rem;
+    vertical-align: middle;
+}
+
+.loading-dots span {
+    position: absolute;
+    width: 0.5rem;
+    height: 0.5rem;
+    background-color: #333;
+    border-radius: 50%;
+    animation: loading-dots 1.4s infinite ease-in-out both;
+}
+
+.loading-dots span:nth-child(1) {
+    top: 0.5rem;
+    left: 0;
+    animation-delay: -0.4s;
+}
+
+.loading-dots span:nth-child(2) {
+    top: 0.5rem;
+    left: 0.7rem;
+    animation-delay: -0.2s;
+}
+
+.loading-dots span:nth-child(3) {
+    top: 0.5rem;
+    left: 1.3rem;
+    animation-delay: 0;
+}
+
+@keyframes loading-dots {
+    0%,
+    80%,
+    100% {
+        transform: scaleY(0.4);
+    }
+    40% {
+        transform: scaleY(1);
+    }
+}
+</style>
