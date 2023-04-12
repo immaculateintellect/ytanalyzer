@@ -138,7 +138,7 @@ Route::post('/ask', function (Request $request) {
         $timeInterval      = new DateInterval($duration);
         $intervalInSeconds = (new DateTime())->setTimeStamp(0)->add($timeInterval)->getTimeStamp();
         $intervalInMinutes = $intervalInSeconds/60;
-        if($intervalInMinutes>10 && (!Auth::user() || Auth::user()->subscribed('default'))){
+        if($intervalInMinutes>10 && (!Auth::user() || !Auth::user()->subscribed('default'))){
             throw new \Exception("You must be a premium member to ask about videos longer than 10 minutes.");
         }
         
