@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link, usePage } from "@inertiajs/vue3";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
+import { debounce } from "lodash";
 
 const videoSrc = ref("");
 const current_user = ref(null);
@@ -8,31 +9,46 @@ const videoPlayer = ref(null);
 const user = computed(() => usePage().props.user);
 const hasPremium = computed(() => usePage().props.hasPremium);
 const showInstructions = ref(false);
+const debouncedInputTimer = ref(null);
+const video = ref(null);
+const loading = ref(false);
+const chatMessages = ref(null);
+const questionInput = ref("");
 
-const video = computed(() => {
-    const videoUrl = videoSrc.value.trim();
-    if (!videoUrl) {
-        return;
-    }
+const menuVisible = ref(false);
+watch(
+    videoSrc,
+    debounce((newValue) => {
+        // Handle onChange event here
+        const videoUrl = newValue.trim();
+        if (!videoUrl) {
+            loading.value = false;
+            return;
+        }
 
-    const videoId = extractVideoId(videoUrl);
-    if (!videoId) {
-        alert("Please enter a valid YouTube URL");
-        return;
-    }
+        const videoId = extractVideoId(videoUrl);
 
-    const embedUrl = "https://www.youtube.com/embed/" + videoId + "?rel=0";
-    setTimeout(() => {
-        videoPlayer.value.setAttribute("title", "YouTube video player");
-        videoPlayer.value.setAttribute("frameborder", "0");
-        videoPlayer.value.setAttribute(
-            "allow",
-            "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        );
-        videoPlayer.value.setAttribute("allowfullscreen", "");
-    }, 100);
-    return embedUrl;
-});
+        if (!videoId) {
+            alert("Please enter a valid YouTube URL");
+            loading.value = false;
+            return;
+        }
+
+        const embedUrl = "https://www.youtube.com/embed/" + videoId + "?rel=0";
+        setTimeout(() => {
+            videoPlayer.value.setAttribute("title", "YouTube video player");
+            videoPlayer.value.setAttribute("frameborder", "0");
+            videoPlayer.value.setAttribute(
+                "allow",
+                "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            );
+            videoPlayer.value.setAttribute("allowfullscreen", "");
+        }, 100);
+
+        loading.value = false;
+        video.value = embedUrl;
+    }, 1500)
+);
 
 function extractVideoId(videoUrl) {
     const regex =
@@ -40,8 +56,6 @@ function extractVideoId(videoUrl) {
     const match = videoUrl.match(regex);
     return match ? match[1] : null;
 }
-const chatMessages = ref(null);
-const questionInput = ref("");
 
 function askQuestion() {
     const question = questionInput.value.trim();
@@ -112,68 +126,93 @@ function displayMessage(message, className, isAI = false) {
     chatMessages.value.scrollTop = chatMessages.scrollHeight;
     return messageElement;
 }
-
-function loadVideo() {}
-
-// const instructionsModal = document.getElementById("instructions-modal");
-// const instructionsButton = document.getElementById("instructions-button");
-// const closeButton = document.querySelector(".close");
-
-// instructionsButton.addEventListener("click", function () {
-//     instructionsModal.classList.toggle("hidden");
-//     if (!instructionsModal.classList.contains("hidden")) {
-//         instructionsModal.classList.add("show");
-//     } else {
-//         instructionsModal.classList.remove("show");
-//     }
-// });
-
-// closeButton.addEventListener("click", function () {
-//     instructionsModal.classList.toggle("hidden");
-//     if (!instructionsModal.classList.contains("hidden")) {
-//         instructionsModal.classList.add("show");
-//     } else {
-//         instructionsModal.classList.remove("show");
-//     }
-// });
-
-function toggleInstructions() {}
-// window.addEventListener("click", function (event) {
-//     if (event.target == instructionsModal) {
-//         instructionsModal.classList.toggle("hidden");
-//         if (!instructionsModal.classList.contains("hidden")) {
-//             instructionsModal.classList.add("show");
-//         } else {
-//             instructionsModal.classList.remove("show");
-//         }
-//     }
-// });
 </script>
 
 <template>
     <Head title="TubeAsk" />
-    <div class="flex justify-between">
+
+    <div
+        class="flex flex-col md:flex-row items-center justify-between px-4 py-3 bg-transparent"
+    >
         <div>
+            <a href="#" class="text-lg font-semibold text-white">TubeAsk</a>
+        </div>
+        <div class="relative inline-block text-left">
+            <div>
+                <button
+                    type="button"
+                    class="inline-flex justify-center w-full px-4 py-2 bg-transparent text-sm font-medium text-white focus:outline-none focus:ring-0 focus:ring-0 focus:ring-0"
+                    id="menu-button"
+                    aria-expanded="true"
+                    aria-haspopup="true"
+                    @click="menuVisible = !menuVisible"
+                    @blur="
+                        debounce(function () {
+                            menuVisible = false;
+                        }, 300)
+                    "
+                >
+                    <span v-if="user" class="text-white">
+                        {{ user.email }}
+                    </span>
+                    <a href="/login" v-else>Login with Google</a>
+                    <svg
+                        class="-mr-1 ml-2 h-5 w-5"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        aria-hidden="true"
+                        v-if="user"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M5.293 7.707a1 1 0 0 1 1.414 0L10 11.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 0 1 0-1.414z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                </button>
+            </div>
             <div
-                id="instructions-button"
-                class="rounded-md cursor-pointer text-bold m-2 py-1 px-2 hover:bg-[#f4f4f4] bg-[#ffe0d1] text-[#ff581a] shadow-md"
-                @click="showInstructions = true"
+                v-if="menuVisible && user"
+                class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="menu-button"
+                tabindex="-1"
             >
-                Instructions
+                <div class="py-1" role="none">
+                    <a
+                        href="#"
+                        class="text-gray-700 block px-4 py-2 text-sm"
+                        role="menuitem"
+                        tabindex="-1"
+                        id="menu-item-0"
+                        >Link 1</a
+                    >
+                    <a
+                        href="#"
+                        class="text-gray-700 block px-4 py-2 text-sm"
+                        role="menuitem"
+                        tabindex="-1"
+                        id="menu-item-1"
+                        >Link 2</a
+                    >
+                    <a
+                        class="text-gray-700 block px-4 py-2 text-sm"
+                        role="menuitem"
+                        tabindex="-1"
+                        v-if="user"
+                        href="/logout"
+                        >Logout</a
+                    >
+                </div>
             </div>
         </div>
-        <div>
-            <div v-if="current_user?.is_authenticated">
-                <p class="user-info">Hello, {{ current_user.name }}!</p>
-                <a
-                    class="rounded-xl cursor-pointer text-bold m-2 py-1 px-2 hover:bg-[#f4f4f4] bg-[#ffe0d1] text-[#ff581a] shadow-md"
-                    href="/logout"
-                    >Logout</a
-                >
-            </div>
-            <div
-                class="rounded-md cursor-pointer text-bold mx-2 mt-2 p-1 hover:bg-[#f4f4f4] bg-[#ffe0d1] text-[#ff581a] shadow-md"
-            >
+
+        <!-- <nav class="hidden md:mt-0 mt-4 md:flex flex-col md:flex-row">
+            <a href="/logout">Logout</a>
+            <div @click="showInstructions = true">Instructions</div>
+            <div>
                 <a v-if="!user" class="w-full h-full" href="/login">
                     Login with Google
                 </a>
@@ -181,21 +220,15 @@ function toggleInstructions() {}
                     {{ user.email }}
                 </a>
             </div>
-            <div class="flex flex-col text-white text-right mr-2" v-if="user">
+            <div v-if="user">
                 <a v-if="!hasPremium" class="logout" href="/upgrade">
                     Upgrade</a
                 >
-
-                <a
-                    class="logout px-2 py-0"
-                    v-if="hasPremium"
-                    href="/edit-subscription"
-                >
+                <a v-if="hasPremium" href="/edit-subscription">
                     Edit Subscription
                 </a>
-                <a class="logout px-2 py-0" href="/logout"> Logout </a>
             </div>
-        </div>
+        </nav> -->
     </div>
     <div
         v-if="showInstructions"
@@ -246,8 +279,8 @@ function toggleInstructions() {}
                 0 10px 14px rgba(0, 0, 0, 0.24);
         "
     >
-        <h1 class="text-2xl text-center">TubeAsk</h1>
         <h2 class="subtitle text-center">Summarize YouTube Videos Using AI</h2>
+        <h2 class="text-center"><small v-if="loading">Loading Video</small></h2>
 
         <div class="p-2 rounded-lg">
             <iframe
@@ -267,14 +300,8 @@ function toggleInstructions() {}
                 type="text"
                 placeholder="Enter YouTube Video URL..."
                 v-model="videoSrc"
+                @input="loading = true"
             />
-        </div>
-        <div class="m-2 flex">
-            <a
-                class="cursor-pointer rounded-md shadow-lg w-full p-1 leading-tight bg-red-600 w-full text-center text-white"
-                @click="loadVideo()"
-                >Load Video
-            </a>
         </div>
         <div class="mx-2">
             <div
