@@ -166,6 +166,9 @@ Route::post('/ask', function (Request $request) {
     if($transcript){
         $system_message = $system_message." The video has the following transcript: '".truncate($transcript, 16030)."'";
     }
+    Log::info('system message: '.$system_message);
+    Log::info("Question: ".$question);
+    
     $response = $client->chat()->create([
         'model' => 'gpt-3.5-turbo',
         'messages' => [
