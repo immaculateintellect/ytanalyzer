@@ -42,7 +42,7 @@ Route::get('/login/google/authorized', function (Request $request) {
         $newUser                  = new User;
         $newUser->name            = $user->name;
         $newUser->email           = $user->email;
-        $newUser->password           = 'oauth user';
+        $newUser->password           = bcrypt(Str::random(20));
         $newUser->save();
         auth()->login($newUser, true);
     }

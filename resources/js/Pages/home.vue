@@ -1,5 +1,5 @@
 <script setup>
-import { Head, Link, usePage } from "@inertiajs/vue3";
+import { Head, Link, usePage, router } from "@inertiajs/vue3";
 import { ref, computed, onMounted, watch } from "vue";
 import { debounce } from "lodash";
 
@@ -87,17 +87,34 @@ function askQuestion() {
             loadingDots.style.display = "none";
         });
 }
+async function handleCredentialResponse(response) {
+    const config = {
+        // headers: {
+        //     "Content-Type": "application/json",
+        //     "X-CSRF-TOKEN": document
+        //         .querySelector('meta[name="csrf-token"]')
+        //         .getAttribute("content"),
+        // },
+    };
+    await router.post(
+        "/login/google/authorized",
+        {
+            token: response.credential,
+        },
+        config
+    );
+}
 onMounted(() => {
     google.accounts.id.initialize({
         client_id:
             "391724086841-egb5ffs77sss0gqnart3c45q3fkvshde.apps.googleusercontent.com",
-        // callback: handleCredentialResponse,
+        callback: handleCredentialResponse,
     });
     google.accounts.id.renderButton(
         document.getElementById("buttonDiv"),
         { theme: "outline", size: "large" } // customization attributes
     );
-    google.accounts.id.prompt(); // also display the One Tap dialog
+    // google.accounts.id.prompt(); // also display the One Tap dialog
 });
 
 function downloadTranscript() {
