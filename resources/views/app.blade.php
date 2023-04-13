@@ -12,14 +12,7 @@
 
         <!-- Scripts -->
         <script src="https://accounts.google.com/gsi/client" async defer></script>
-        <script>
-        function handleCredentialResponse(response) {
-          console.log("Encoded JWT ID token: " + response.credential);
-        }
-        window.onload = function () {
-          
-        }
-    </script>
+        
         @routes
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead

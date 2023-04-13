@@ -91,7 +91,7 @@ onMounted(() => {
     google.accounts.id.initialize({
         client_id:
             "391724086841-egb5ffs77sss0gqnart3c45q3fkvshde.apps.googleusercontent.com",
-        callback: handleCredentialResponse,
+        // callback: handleCredentialResponse,
     });
     google.accounts.id.renderButton(
         document.getElementById("buttonDiv"),
@@ -99,6 +99,7 @@ onMounted(() => {
     );
     google.accounts.id.prompt(); // also display the One Tap dialog
 });
+
 function downloadTranscript() {
     let transcript = "";
     chatMessages.value
@@ -138,10 +139,6 @@ function displayMessage(message, className, isAI = false) {
     chatMessages.value.scrollTop = chatMessages.scrollHeight;
     return messageElement;
 }
-
-setInterval(function () {
-    refresher.value = refresher.value + 1;
-}, 1000);
 </script>
 
 <template>
@@ -224,27 +221,6 @@ setInterval(function () {
                 </div>
             </div>
         </div>
-
-        <!-- <nav class="hidden md:mt-0 mt-4 md:flex flex-col md:flex-row">
-            <a href="/logout">Logout</a>
-            <div @click="showInstructions = true">Instructions</div>
-            <div>
-                <a v-if="!user" class="w-full h-full" href="/login">
-                    Login with Google
-                </a>
-                <a v-if="user" class="w-full h-full" href="javascript:;">
-                    {{ user.email }}
-                </a>
-            </div>
-            <div v-if="user">
-                <a v-if="!hasPremium" class="logout" href="/upgrade">
-                    Upgrade</a
-                >
-                <a v-if="hasPremium" href="/edit-subscription">
-                    Edit Subscription
-                </a>
-            </div>
-        </nav> -->
     </div>
     <div
         v-if="showInstructions"
