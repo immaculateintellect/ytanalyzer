@@ -160,22 +160,7 @@ setInterval(function () {
                     <span v-if="user" class="text-white">
                         {{ user.email }}
                     </span>
-                    <div
-                        id="g_id_onload"
-                        data-client_id="391724086841-egb5ffs77sss0gqnart3c45q3fkvshde.apps.googleusercontent.com"
-                        data-login_uri="https://tubeask.live/login/google/authorized"
-                        data-auto_prompt="false"
-                        :key="refresher"
-                    ></div>
-                    <div
-                        class="g_id_signin"
-                        data-type="standard"
-                        data-size="large"
-                        data-theme="outline"
-                        data-text="sign_in_with"
-                        data-shape="rectangular"
-                        data-logo_alignment="left"
-                    ></div>
+                    <div id="buttonDiv"></div>
                     <a href="/login">Login with Google</a>
                     <svg
                         class="-mr-1 ml-2 h-5 w-5"
