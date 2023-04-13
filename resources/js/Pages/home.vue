@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, usePage } from "@inertiajs/vue3";
-import { ref, computed, watch } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { debounce } from "lodash";
 
 const videoSrc = ref("");
@@ -87,7 +87,18 @@ function askQuestion() {
             loadingDots.style.display = "none";
         });
 }
-
+onMounted(() => {
+    google.accounts.id.initialize({
+        client_id:
+            "391724086841-egb5ffs77sss0gqnart3c45q3fkvshde.apps.googleusercontent.com",
+        callback: handleCredentialResponse,
+    });
+    google.accounts.id.renderButton(
+        document.getElementById("buttonDiv"),
+        { theme: "outline", size: "large" } // customization attributes
+    );
+    google.accounts.id.prompt(); // also display the One Tap dialog
+});
 function downloadTranscript() {
     let transcript = "";
     chatMessages.value
@@ -161,7 +172,6 @@ setInterval(function () {
                         {{ user.email }}
                     </span>
                     <div id="buttonDiv"></div>
-                    <a href="/login">Login with Google</a>
                     <svg
                         class="-mr-1 ml-2 h-5 w-5"
                         xmlns="http://www.w3.org/2000/svg"
