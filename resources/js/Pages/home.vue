@@ -96,7 +96,7 @@ async function handleCredentialResponse(response) {
         //         .getAttribute("content"),
         // },
     };
-    await router.post(
+    await router.get(
         "/login/google/authorized",
         {
             token: response.credential,
