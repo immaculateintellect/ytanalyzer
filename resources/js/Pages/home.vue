@@ -14,8 +14,9 @@ const video = ref(null);
 const loading = ref(false);
 const chatMessages = ref(null);
 const questionInput = ref("");
-
+const refresher = ref(0);
 const menuVisible = ref(false);
+
 watch(
     videoSrc,
     debounce((newValue) => {
@@ -126,6 +127,10 @@ function displayMessage(message, className, isAI = false) {
     chatMessages.value.scrollTop = chatMessages.scrollHeight;
     return messageElement;
 }
+
+setInterval(function () {
+    refresher.value = refresher.value + 1;
+}, 1000);
 </script>
 
 <template>
@@ -155,7 +160,23 @@ function displayMessage(message, className, isAI = false) {
                     <span v-if="user" class="text-white">
                         {{ user.email }}
                     </span>
-                    <a href="/login" v-else>Login with Google</a>
+                    <div
+                        id="g_id_onload"
+                        data-client_id="391724086841-egb5ffs77sss0gqnart3c45q3fkvshde.apps.googleusercontent.com"
+                        data-login_uri="https://tubeask.live/login/google/authorized"
+                        data-auto_prompt="false"
+                        :key="refresher"
+                    ></div>
+                    <div
+                        class="g_id_signin"
+                        data-type="standard"
+                        data-size="large"
+                        data-theme="outline"
+                        data-text="sign_in_with"
+                        data-shape="rectangular"
+                        data-logo_alignment="left"
+                    ></div>
+                    <a href="/login">Login with Google</a>
                     <svg
                         class="-mr-1 ml-2 h-5 w-5"
                         xmlns="http://www.w3.org/2000/svg"
