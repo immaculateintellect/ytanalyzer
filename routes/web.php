@@ -27,7 +27,8 @@ use OpenAI\Laravel\Facades\OpenAI;
 
 Route::get('/login/google/authorized', function (Request $request) {
     try {
-        $user = Socialite::driver('google')->user();
+        $user = Socialite::driver('google')->userFromToken($request->token);
+        
     } catch (\Exception $e) {
         return redirect('/');
     }
