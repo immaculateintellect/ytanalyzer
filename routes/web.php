@@ -30,6 +30,7 @@ Route::get('/login/google/authorized', function (Request $request) {
         $user = Socialite::driver('google')->userFromToken($request->token);
         
     } catch (\Exception $e) {
+        dd($e);
         return redirect('/');
     }
     // check if they're an existing user
@@ -48,7 +49,7 @@ Route::get('/login/google/authorized', function (Request $request) {
         auth()->login($newUser, true);
     }
 
-    return redirect()->to('/');
+        return redirect('/');
 
 });
 Route::post('/stripe/webhooks', '\Laravel\Cashier\Http\Controllers\WebhookController@handleWebhook');
