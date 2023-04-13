@@ -152,6 +152,7 @@ function displayMessage(message, className, isAI = false) {
         </div>
         <div class="relative inline-block text-left">
             <div>
+                <div id="buttonDiv"></div>
                 <button
                     type="button"
                     class="inline-flex justify-center w-full px-4 py-2 bg-transparent text-sm font-medium text-white focus:outline-none focus:ring-0 focus:ring-0 focus:ring-0"
@@ -168,7 +169,6 @@ function displayMessage(message, className, isAI = false) {
                     <span v-if="user" class="text-white">
                         {{ user.email }}
                     </span>
-                    <div id="buttonDiv"></div>
                     <svg
                         class="-mr-1 ml-2 h-5 w-5"
                         xmlns="http://www.w3.org/2000/svg"
