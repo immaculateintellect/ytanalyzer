@@ -16,7 +16,7 @@ const chatMessages = ref(null);
 const questionInput = ref("");
 const refresher = ref(0);
 const menuVisible = ref(false);
-
+const cancel = ref(false);
 watch(
     videoSrc,
     debounce((newValue) => {
@@ -58,6 +58,15 @@ function extractVideoId(videoUrl) {
     return match ? match[1] : null;
 }
 
+function debouncedClose() {
+    debounce((newValue) => {
+        console.log("hello?");
+        console.log(cancel.value);
+        if (!cancel.value) {
+            menuVisible.value = false;
+        }
+    }, 300)();
+}
 function askQuestion() {
     const question = questionInput.value.trim();
     if (!question) return;
@@ -87,35 +96,6 @@ function askQuestion() {
             loadingDots.style.display = "none";
         });
 }
-async function handleCredentialResponse(response) {
-    const config = {
-        // headers: {
-        //     "Content-Type": "application/json",
-        //     "X-CSRF-TOKEN": document
-        //         .querySelector('meta[name="csrf-token"]')
-        //         .getAttribute("content"),
-        // },
-    };
-    await router.get(
-        "/login/google/authorized",
-        {
-            token: response.credential,
-        },
-        config
-    );
-}
-onMounted(() => {
-    google.accounts.id.initialize({
-        client_id:
-            "391724086841-egb5ffs77sss0gqnart3c45q3fkvshde.apps.googleusercontent.com",
-        callback: handleCredentialResponse,
-    });
-    google.accounts.id.renderButton(
-        document.getElementById("buttonDiv"),
-        { theme: "outline", size: "large" } // customization attributes
-    );
-    // google.accounts.id.prompt(); // also display the One Tap dialog
-});
 
 function downloadTranscript() {
     let transcript = "";
@@ -162,14 +142,24 @@ function displayMessage(message, className, isAI = false) {
     <Head title="TubeAsk" />
 
     <div
-        class="flex flex-col md:flex-row items-center justify-between px-4 py-3 bg-transparent"
+        class="max-w-[600px] mx-auto flex flex-col md:flex-row items-center justify-between px-4 py-3 bg-transparent"
     >
-        <div>
-            <a href="#" class="text-lg font-semibold text-white">TubeAsk</a>
+        <div class="text-center md:text-left">
+            <a href="/" class="text-2xl font-semibold text-white">TubeAsk</a>
+            <h2 class="subtitle text-sm text-white">
+                Summarize YouTube Videos Using AI
+            </h2>
         </div>
-        <div class="relative inline-block text-left">
-            <div>
-                <div id="buttonDiv"></div>
+
+        <div class="md:flex md:items-center mt-3 md:-mr-4">
+            <a v-if="!user" href="/login">
+                <img src="/img/google_signin.png" class="w-40" />
+            </a>
+
+            <div
+                class="relative inline-block text-left"
+                @mouseleave="debouncedClose"
+            >
                 <button
                     type="button"
                     class="inline-flex justify-center w-full px-4 py-2 bg-transparent text-sm font-medium text-white focus:outline-none focus:ring-0 focus:ring-0 focus:ring-0"
@@ -177,11 +167,6 @@ function displayMessage(message, className, isAI = false) {
                     aria-expanded="true"
                     aria-haspopup="true"
                     @click="menuVisible = !menuVisible"
-                    @blur="
-                        debounce(function () {
-                            menuVisible = false;
-                        }, 300)
-                    "
                 >
                     <span v-if="user" class="text-white">
                         {{ user.email }}
@@ -204,28 +189,36 @@ function displayMessage(message, className, isAI = false) {
             </div>
             <div
                 v-if="menuVisible && user"
-                class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+                class="absolute mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
                 role="menu"
                 aria-orientation="vertical"
                 aria-labelledby="menu-button"
                 tabindex="-1"
+                @mouseenter="cancel = true"
+                @mouseleave="
+                    cancel = false;
+                    debouncedClose();
+                "
             >
                 <div class="py-1" role="none">
                     <a
-                        href="#"
+                        v-if="!hasPremium"
+                        href="/upgrade"
                         class="text-gray-700 block px-4 py-2 text-sm"
                         role="menuitem"
                         tabindex="-1"
                         id="menu-item-0"
-                        >Link 1</a
+                        >Upgrade</a
                     >
+
                     <a
-                        href="#"
+                        v-if="hasPremium"
+                        href="/edit-subscription"
                         class="text-gray-700 block px-4 py-2 text-sm"
                         role="menuitem"
                         tabindex="-1"
                         id="menu-item-1"
-                        >Link 2</a
+                        >Edit Subscription</a
                     >
                     <a
                         class="text-gray-700 block px-4 py-2 text-sm"
@@ -288,7 +281,6 @@ function displayMessage(message, className, isAI = false) {
                 0 10px 14px rgba(0, 0, 0, 0.24);
         "
     >
-        <h2 class="subtitle text-center">Summarize YouTube Videos Using AI</h2>
         <h2 class="text-center"><small v-if="loading">Loading Video</small></h2>
 
         <div class="p-2 rounded-lg">
@@ -314,7 +306,7 @@ function displayMessage(message, className, isAI = false) {
         </div>
         <div class="mx-2">
             <div
-                class="m-3 flex flex-col border w-full min-h-[300px] bg-[#e7e7e7] rounded-sm shadow-lg mx-auto"
+                class="mt-3 flex flex-col border w-full min-h-[300px] mb-10 bg-[#e7e7e7] rounded-sm shadow-lg mx-auto"
             >
                 <div ref="chatMessages" class="p-2 chat-messages"></div>
                 <div class="flex-grow">
