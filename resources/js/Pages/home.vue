@@ -363,7 +363,7 @@ function displayMessage(message, className, isAI = false) {
             </a>
         </div>
     </div>
-    <div class="flex justify-center items-center h-24">
+    <div class="flex md:hidden justify-center items-center h-24">
         <a
             href="https://twitter.com/DreadMcLaren"
             target="_blank"
