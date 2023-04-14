@@ -46,6 +46,7 @@ Route::get('/login/google/authorized', function (Request $request) {
         $newUser->save();
         auth()->login($newUser, true);
     }
+      Auth::user()->createOrGetStripeCustomer();
 
     return redirect()->to('/');
 
