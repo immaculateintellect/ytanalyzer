@@ -60,8 +60,6 @@ function extractVideoId(videoUrl) {
 
 function debouncedClose() {
     debounce((newValue) => {
-        console.log("hello?");
-        console.log(cancel.value);
         if (!cancel.value) {
             menuVisible.value = false;
         }
@@ -133,7 +131,7 @@ function displayMessage(message, className, isAI = false) {
     }
 
     chatMessages.value.appendChild(messageElement);
-    chatMessages.value.scrollTop = chatMessages.scrollHeight;
+    chatMessages.value.scrollTop = chatMessages.value.scrollHeight;
     return messageElement;
 }
 </script>
@@ -169,7 +167,7 @@ function displayMessage(message, className, isAI = false) {
                     @click="menuVisible = !menuVisible"
                 >
                     <span v-if="user" class="text-white">
-                        {{ user.email }}
+                        {{ user.name }}
                     </span>
                     <svg
                         class="-mr-1 ml-2 h-5 w-5"
@@ -306,9 +304,10 @@ function displayMessage(message, className, isAI = false) {
         </div>
         <div class="mx-2">
             <div
-                class="mt-3 flex flex-col border w-full min-h-[300px] mb-10 bg-[#e7e7e7] rounded-sm shadow-lg mx-auto"
+                class="mt-3 flex flex-col border w-full min-h-[300px] mb-3 bg-[#e7e7e7] rounded-sm shadow-lg mx-auto"
             >
                 <div ref="chatMessages" class="p-2 chat-messages"></div>
+
                 <div class="flex-grow">
                     <span class="loading-dots"> </span>
                 </div>
@@ -341,7 +340,8 @@ function displayMessage(message, className, isAI = false) {
                 </div>
             </div>
         </div>
-        <div class="fixed bottom-3 flex left-3">
+
+        <div class="hidden md:fixed bottom-3 md:flex left-3">
             <a
                 href="https://twitter.com/DreadMcLaren"
                 target="_blank"
@@ -362,6 +362,23 @@ function displayMessage(message, className, isAI = false) {
                 />
             </a>
         </div>
+    </div>
+    <div class="flex justify-center items-center h-24">
+        <a
+            href="https://twitter.com/DreadMcLaren"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mr-7"
+        >
+            <img src="/img/twitter.png" class="h-6" alt="Twitter Logo" />
+        </a>
+        <a
+            href="https://www.buymeacoffee.com/dreadmclaren"
+            target="_blank"
+            class="buymeacoffee-logo-container"
+        >
+            <img class="h-6" src="/img/bmc-button.png" alt="Buy Me A Coffee" />
+        </a>
     </div>
 </template>
 
